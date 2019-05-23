@@ -1,0 +1,12 @@
+---
+- hosts: all
+  user: root 
+  tasks:
+  - name: Copy MOTD file
+    copy:
+      src: /etc/motd
+      dest: "{{ item.dest }}"
+      mode: 0777
+    with_items:
+      - { dest: '/home/homeboy1'}
+      - { dest: '/home/homeboy2'}
