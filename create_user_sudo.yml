@@ -1,0 +1,52 @@
+---
+- hosts: all
+  become_user: root
+
+
+  tasks:
+
+
+    - name: Create sudoers file backup
+      command: cp -f /etc/sudoers /etc/sudoers.bak
+
+    - name: Create admins group
+      group: name=admins system=yes state=present
+
+    - name: Add user1 "homeboy1" to the remote servers
+      user:
+       name: homeboy1
+       comment: "Privileged User"
+       password: '$6$F4NWXRFtSdCi8$DsB5vvMJYusQhSbvGXrYDXL6Xj37MUuqFCd4dGXdKd6NyxT3lpdELN07/Kpo7EjjWnm9zusFg/LLFv6oc.ynu/' 
+       update_password: on_create
+       shell: /bin/bash
+       uid: 2000
+       group: admins
+       groups: wheel,docker,test
+       state: present
+       append: yes
+
+    - name: Add user2 "homeboy2" to the remote servers
+      user:
+       name: homeboy2
+       comment: "Privileged User"
+       password: '$6$F4NWXRFtSdCi8$DsB5vvMJYusQhSbvGXrYDXL6Xj37MUuqFCd4dGXdKd6NyxT3lpdELN07/Kpo7EjjWnm9zusFg/LLFv6oc.ynu/' 
+       update_password: on_create
+       shell: /bin/bash
+       group: admins
+       groups: wheel,docker,test
+       state: present
+       append: yes
+
+    - name: placing ssh key to authorized key
+      authorized_key:
+       user: homeboy1
+       state: present
+       key: "{{ lookup('file', '/etc/ansible/playbook/keyfiles/authorized_keys.homeboy1.pub') }}"
+
+    - name: Allow passwordless sudo in wheel group
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: ‘^wheel’
+        line: ‘%wheel ALL=(ALL) NOPASSWD:ALL’
+        validate: ‘visudo -cf %s’
